@@ -1,0 +1,645 @@
+Intel(R) EEUpdate Release Notes
+================================
+August 18, 2014
+
+
+Contents
+========
+
+- OVERVIEW
+- RUNNING THE UTILITY
+   - OPTIONS
+   - BASIC USAGE GUIDELINES
+   - EEPROM IMAGE FILE FORMAT
+   - EEPROM/NVM VERIFICATION
+   - INVM FILE FORMAT
+   - MAC ADDRESS FILE FORMAT
+   - EELOG.DAT
+   - EXAMPLES
+   - ERROR CODES
+- INSTALLATION
+- CUSTOMER SUPPORT
+-LEGAL
+
+
+OVERVIEW
+========
+EEUpdate is the EEPROM Update Utility.  Allows manufacturing programming of
+EEPROMs, in cases where EEPROM is not preprogrammed, or programmed
+at In-circuit test.
+
+
+RUNNING THE UTILITY
+===================
+Using the "/?" option will display a list of supported command line options.
+
+NOTE: EEPROM checksums and CRCs are automatically updated with any
+      command that modifies the EEPROM contents.
+
+OPTIONS:
+--------
+EEUPDATE can be run with any of the following command line options:
+
+  /HELP or /?
+    Displays command line help.
+
+  /A <addrfile> or /address <addrfile>
+      Programs the EEPROM with only the MAC address from
+      the <addrfile> without changing the rest of the
+      EEPROM.
+
+  /ADAPTERRESET
+      Reset the adapter.
+      *CAUTION* This will unload the driver for this device if present.
+
+  /ALL
+     Selects all adapters found in the system.
+
+  /BUS=XX
+     Selects PCI bus of adapter to program.  Must be used with the DEV
+     parameter to specify an adapter.
+
+  /CALCCHKSUM
+     Forces the EEPROM checksum and CRCs to be updated.
+
+  /CB <offset> <bitmask>
+     Clears bits in the EEPROM, specified in <bitmask>.
+
+  /D <imagefile> or 
+  /DATA <imagefile>
+     Programs the EEPROM with the contents of <imagefile> without 
+     changing the MAC address.
+
+  /DEBUG
+     Forces debug update to be used where applicable. Must be used with /D 
+     or /DATA switch. This option is only for use in an emergency. Do not
+     use it if normal mode is functional.
+
+  /DEBUGLOG <debugfile>
+      Log debug messages into the debugfile.
+
+  /DEV=XX
+      Selects PCI device of the adapter to program.  Must be used with the
+      BUS parameter to specify an adapter.
+
+  /DEVICE=<pci device id>
+      4 hex digit device id of card to program.
+
+  /DUMP
+      Dumps EEPROM memory contents to file.
+
+  /EEPROMVER
+      Displays the version of the EEPROM image.
+
+  /EXITCODES
+      Displays exit code help.
+
+  /FUN=XX
+      Selects PCI function of the adapter to program.  Must be used with both
+      the BUS and DEV parameters to specify an adapter.
+
+  /GUI [/HELP]
+      Brings up GUI mode. /HELP is optional and displays the GUI Help.
+
+  /IDFLASH
+     Displays the flash ID and its protected status.
+
+  /INVMGET
+     Dumps the contents of the INVM to the file <mac_address>_otp, where 
+     <mac_address> is the MAC address of the adapter.
+
+  /INVMISLOCKED
+     Checks if data stored in the INVM is protected against write attempts. 
+
+  /INVMLOCK [/FORCE]
+     Locks the data stored in the INVM against all future write attempts. 
+     This option requires user confirmation. Using /FORCE when calling 
+     INVMLOCK from a script will not display the confirmation and will not 
+     cause the script to stop.
+
+  /INVMTEST /FILE=<config_file>
+     Compares the free space in the INVM to the data contained in <config_file>. 
+     Returns the free space that would remain if the <config_file> were applied.
+
+  /INVMUPDATE /FILE=<config_file>
+     Programs the INVM with the contents of <config_file>.
+
+  /INVMVERIFY /FILE=<config_file>
+     Compares the configuration data stored in the INVM with the configuration 
+     defined in the <config_file> file. Returns the differences and displays 
+     them on screen.
+
+  /INVMVERSION
+     Displays the INVM version information. A value of "00.0-0" indicates an 
+     empty or invalid version. "Unsupported" indicates the device does not 
+     support INVM.
+
+  /KEEPCONFIG
+     Preserves some user data during an EEPROM upgrade. Preserved data includes 
+     the device's Alternate MAC Address and PXE configuration words, however 
+     the preserved data depends on the device. 
+
+  /MAC=macaddr [/NUM=pf_num]
+     Programs the EEPROM with only the MAC address of macaddr without changing 
+     the rest of the EEPROM. /NUM is optional and applicable only to multi
+     function adapters. Valid value range is 0 to 15.
+
+  /MAC_DUMP
+     Displays the adapter LAN MAC address.
+
+  /MAC_DUMP_FILE
+     Dumps the MAC address to a file usable by the /A command.
+
+  /NIC=XX
+     Selects a specific adapter (1-32).
+
+  /NOPROT
+     When programming an image for devices that support NVM protection,
+     prevents protection from being enabled.  This switch must be used
+     with the /DATA command and has no effect on NVM devices that are
+     already protected.
+
+  /PCIINFO
+     Displays the PCI information of the adapter.
+
+  /PF_MAC=macaddr /NUM=PF_num
+     Programs the dedicated MAC address of a specified Physical Function
+     This allows altering the mac addresses of inactive functions of a
+     visible NIC.
+
+  /PF_MAC_DUMP /NUM=PF_num
+     Display MAC address of a selected Physical Function of the
+     specified NIC. This allows dumping MAC addresses of inactive functions
+     of a visible device.
+
+  /PORT_MAC=macaddr /NUM=Port_num
+     Programs the dedicated Port MAC address without changing the rest of the 
+     EEPROM. /NUM is optional and applicable only to multi function adapters. 
+     Valid value range is 0 to 15.
+
+  /PORT_MAC_DUMP /NUM=Port_num
+     Display the adapter port MAC address. /NUM is optional and applicable only 
+     to multi function adapters. Valid value range is 0 to 15.
+
+  /RW <word>
+     Reads <word> from the EEPROM.
+
+  /SANADDRESS <addrfile>
+     Programs the dedicated SAN MAC address with the MAC address from <addrfile>.
+
+  /SANMAC=macaddr
+     Programs the dedicated SAN MAC address without changing the rest of
+     the EEPROM.
+
+  /SANMAC_DUMP
+     Displays the dedicated MAC address for the SAN.
+
+  /SB <offset> <bitmask>
+     Sets bits in the EEPROM, specified in <bitmask>.
+
+  /SERIAL_MAC=macaddr
+     Programs the dedicated PCIe serial MAC address without changing the rest 
+     of the EEPROM.
+
+  /SERIAL_MAC_DUMP
+     Display the adapter PCIe serial MAC address.  
+
+  /SUBDEVICE=<pci subsystem device ID>
+     4 hex digit subsystem device id of card to program.
+
+  /TEST
+     Checks the EEPROM checksum and size.
+
+  /VERSION
+     Displays version and the diagnostic library information.
+
+  /WW <word> <value>
+     Writes <value> into <word> in EEPROM.
+
+  /VERIFY <targetfile>
+     Verifies the eeprom image in eeprom to the target file
+     specified in <targetfile>.
+
+
+BASIC USAGE GUIDELINES
+----------------------
+To display a list of installed adapters call EEUPDATE without any parameters 
+as follows:
+
+EEUPDATE
+
+EEUPDATE will display a list of network adapters installed in the
+system similar to the following:
+
+    [EEUPDATE ver 5.0.1.0] - Intel PCI NIC EEPROM Utility
+    Copyright (C) 1995 - 2004 Intel Corporation
+    Intel (R) Confidential and not for general distribution.
+
+    Warning: No Adapter Selected
+
+    NIC Bus Dev Fun Vendor-Device  Branding string
+    === === === === ============= =================================================
+    1  1   00  00   8086-1008     Intel(R) PRO/1000 XT Server Adapter
+    2  1   08  00   8086-1039     Intel(R) PRO/100 VE Network Connection
+
+
+To perform an operation on an installed network adapter you must specify
+the "/NIC=" parameter.  For example, to perform an EEPROM dump on NIC 3
+from the list above call EEUPDATE like this:
+
+EEUPDATE /NIC=3 /DUMP
+
+Alternatively you may specify the "/BUS=" and "/DEV=" parameters instead of the
+"/NIC=" parameter to specify which network adapter to select.  For example
+to program NIC 1 from the list above with the EEPROM image file "image.eep"
+call EEUPDATE.EXE as follows:
+
+EEUPDATE /BUS=0 /DEV=0 /DATA image.eep
+
+
+EEPROM IMAGE FILE FORMAT
+------------------------
+The <imagefile> parameter designates either a text file or a binary file. The
+text file contains hexadecimal values with which to program the EEPROM.  Each 
+value should consist of up to four hex digits separated by a space or newline.  
+The data contained in <imagefile> must be formatted the same as the EEPROM 
+imagefile produced by the "/dump" parameter.  An imagefile produced by the 
+"/dump" parameter may be used to program the EEPROM. Comments may be added 
+to the EEPROM image file as long as they are preceded by a semicolon ';'. 
+
+Binary files are also accepted for NVM updates. A binary file can be either 
+signed (used in secure mode) or unsigned.
+
+NOTE: When programming the EEPROM using the "/DATA" parameter, EEupdate will 
+      ignore the MAC Address (first 6 bytes), and EEPROM checksum (last 2 bytes). 
+      However, the MAC Address and checksum locations in the EEPROM image file 
+      must be filled with valid hexadecimal values.
+
+
+EEPROM/NVM VERIFICATION
+-----------------------
+The EEPROM or NVM can be verified against an image file.
+ 
+On devices that support EEPROM images, the following are verified:
+ - DeviceID
+ - EEPROM version
+ - EEPROM checksum
+ - VendorID (if it exists).
+
+On devices that support NVM images, all modules are verified except the Shadow 
+RAM. 
+
+For the I210 adapter family, the Shadow RAM is verified except for the 
+following:
+  - MAC address
+  - FW pointers and size
+  - Flash Device Size
+  - Validity and Protected Fields
+  - PXE settings (Setup Options and Configuration Customization Options)
+  - Checksum
+  - OEM VPD area
+  - PXE Alternate MAC Address
+
+
+INVM FILE FORMAT
+----------------
+The <config_file> is a text file that stores sets of configuration entries and their 
+values. These pairs are used to program the INVM with options such as MAC address, 
+LEDs configuration, device ID and WoL behavior. Values can be changed only if the 
+INVM has enough free locations available and write protection has not been applied. 
+
+File syntax:
+ Single record entry:
+   <Record type> <Address> = <Data> <Reset type> <Comment>
+
+ Ordered section:
+   Ordered_Section_Start
+   <Single record entry #1>
+ 	.
+	.
+   <Single record entry #N>
+ Ordered_Section_End
+
+ where:
+  <Record type> - record type:
+    WALD - autoload word record
+    CSRALD - CSR autoload record
+    PHYALD - PHY autoload record
+  <Address> - address in the range of: 
+    0x0000 - 0x07FF in WALD records definition
+    0x00000 - 0x1FFFF in CSRALD records definition
+    0x00000 - 0x1F in PHYALD records definition
+  <Data> - Data to set:
+    0x0000 - 0xFFFF in WALD and PHYALD records definition
+    0x00000000 - 0xFFFFFFFF in CSRALD records definition
+  <Reset type> - Describes the set of reset events for which the setting is applied:
+    LPG_RST - LanPower Good Reset only
+    PCIE_RST - PCIe asserted reset and all above
+    SW_RST - Host software asserted device reset and all above (must be set for PHYALD)
+  <Comment> - Alphanumeric comment (including space and tab) starting with ';'
+
+
+MAC ADDRESS FILE FORMAT
+-----------------------
+The <addrfile> parameter designates a text file which contains MAC addresses 
+to be programmed to the NIC.  This file should contain a list of one or more 
+legal MAC addresses, one per line.  Each MAC address contains exactly 12 
+hexadecimal digits:
+
+Example:
+
+000AC45D7800
+000AC45D7801
+000AC45D7802
+
+A special "count" syntax may also be used. When a decimal integer in square 
+brackets follows the mac address on the line, it is interpreted as a count of 
+consecutive MAC addresses to be programmed.
+
+Example:
+
+000AC45D7800 [3]
+
+The two examples above are the same.  Both represent three consecutive MAC 
+addresses starting at 000AC45D7800.
+
+Note: Every line in the address file must end with a carriage return.
+
+When EEUPDATE is executed with the <addrfile>, it will sequentially program
+each selected NIC with MAC addresses from the address file, starting with
+the first entry.  A file, EELOG.DAT, is generated with a record of which
+MAC addresses were used and which remain available.
+
+To program the remaining MAC addresses, EEUPDATE must be run again with the 
+EELOG.DAT specified for the <addrfile>.  This is necessary because only 
+EELOG.DAT contains the information on which MAC addresses have been programmed 
+and which still remain available.
+
+Alternatively, the EELOG.DAT file may be copied over to the previous address 
+file to eliminate the possibility of MAC Address reuse.
+(See Example 1 and 2).
+
+If EEUPDATE is run again using the same address file (without copying
+EELOG.DAT), it will program MAC addresses starting back at the first entry
+in the address file.  Please use caution to always use the EELOG.DAT file in
+order to not program two different NIC ports with the same MAC address.
+
+Dual port adapters:
+When programming the MAC address and EEPROM from a file on a dual port adapter,
+the recommended method to only select the 1st port of the dual port adapter
+for programming.  The MAC address file should therefore contain only the 1st
+port MAC addresses.  This method is more efficient, as the EEPROM is only
+programmed once.
+
+82580, 82598, 82599 adapters:
+These adapters require per port MAC address programming.  Each port of the
+adapter must be selected and the desired MAC address programmed on each port.
+When programming the EEPROM image, only one port needs to be selected in
+order to program the EEPROM image file.
+(See Example 9)
+
+
+EELOG.DAT
+---------
+When <addrfile> is used as a source for MAC addresses, EEUPDATE generates 
+a file named EELOG.DAT which contains a record of which MAC addresses in 
+<addrfile> were used and which remain available. Those addresses used are 
+tagged with a date/time stamp like this:
+
+000AC45D7800 : 10:43:14  08/30/2000
+
+The file format for EELOG.DAT is readable as input for <addrfile> in 
+future invocations of EEUPDATE.  As of EEUPDATE 3.27, the EELOG.DAT file 
+may be used as both input and output simultaneously.
+
+
+EXAMPLES
+--------
+Example 1:
+To update the EEPROM and MAC Address with the data stored in the files 
+imagefile.eep and addrfile.dat respectively, call EEUPDATE like this:
+   STEP1: EEUPDATE /NIC=1 /D imagefile.eep /A addrfile.dat
+   STEP2: copy eelog.dat addrfile.dat
+
+Example 2:
+To update the MAC Address on the third Intel network adapter found in your
+system without changing the rest of the EEPROM, call EEUPDATE like this:
+   STEP1: EEUPDATE /NIC=3 /A addrfile.dat
+   STEP2: copy eelog.dat addrfile.dat
+
+Example 3:
+To update the EEPROM on all of the Intel network adapters with device 
+ID 2449, without changing the MAC address, call EEUPDATE like this:
+   EEUPDATE /DEVICE=2449 /D imagefile.eep
+
+Example 4:
+To dump the EEPROM contents on all of the Intel network adapters in your 
+system, call EEUPDATE like this:
+   EEUPDATE /ALL /DUMP
+
+Example 5:
+To clear specific bit 1 in word 0xA in the EEPROM on all of the Intel 
+network adapters in your system with device ID 1038, call EEUPDATE like this:
+   EEUPDATE /DEVICE=1038 /CB 0xA 0x2
+
+Example 6:
+To set bit 1 in word 0xA in the EEPROM on all of the Intel network 
+adapters in your system, call EEUPDATE like this:
+   EEUPDATE /ALL /SB 0xA 0x2
+
+Example 7:
+To read word 0x9 from the EEPROM, call EEUPDATE like this:
+   EEUPDATE /NIC=3 /RW 0x9
+
+Example 8:
+To write word 0x9 to the EEPROM on the third Intel network adapter found 
+in your system, and update its checksum, call EEUPDATE like this:
+   EEUPDATE /NIC=3 /WW 0x9 0x1234
+
+Example 9:
+To update the EEPROM and MAC Address for a dual-port adapter that requires
+per port MAC address programming, call EEUPDATE like this:
+    STEP1:  EEUPDATE /NIC=1 /D imagefile.eep /A eelog.dat
+    STEP2:  EEUPDATE /NIC=2 /A eelog.dat
+
+Example 10:
+To update the MAC Address for a multi function per port adapter that
+requires per function MAC address programming, call EEUPDATE like this:
+    EEUPDATE /NIC=1 /NUM=1 /PF_MAC=macaddr
+or
+    EEUPDATE /NIC=1 /NUM=1 /MAC=macaddr
+
+NOTES
+-----
+
+* If you run EEUPDATE without any command line options, EEUPDATE will   display 
+  a listing of all of the supported Intel Network adapters found in your system.
+
+* When using the '/dump' command, EEUPDATE will automatically create a file and 
+  name it, based on the last 8 bytes of your Intel Network adapter's MAC Address. 
+  For example, if your MAC Address was '00AA11223344', EEUPDATE would create the 
+  file called '11223344.EEP'.
+
+* Both <word> and <bitmask> parameters *must* be sent to eeupdate in hexadecimal.
+
+* The EEPROM Checksums and CRCs are automatically updated when you clear/set a 
+  bit or bits, and when you write a word to the EEPROM.
+
+ERROR CODES:
+-------------
+EEUPDATE returns error codes to the command line.  A description of each of these 
+codes can be found in the tool by running eeupdate /exitcodes.
+
+Installation
+=============
+
+INSTALLING THE TOOLS ON MICROSOFT* WINDOWS*
+===========================================
+The tools driver can be installed on all versions of Microsoft* Windows* since 
+Windows 7. To install the tools' drivers on Windows, run install.bat from the 
+appropriate directory on the CD.   
+
+Although the tools are not installed with install.bat, the driver that the tools 
+require is copied into the local machine Windows driver directory. To run the 
+tools, launch a Command Prompt window from the Windows Start Menu. Go to the 
+media and directory where the tools are located and run the tools. The readme 
+files for each tool are found in the same directory as the tools. These tools 
+can be manually installed on the local hard drive in any directory.
+
+The tool uses its own driver file (not the same as the system network driver).
+If the driver sys file already exists in the drivers directory, install.bat may
+fail to copy. Using the /y switch with install.bat will override and copy the 
+driver file regardless. However, this can be dangerous if an older version of 
+the driver is being used by another application such as Intel(R) PROSet for Windows
+Device Manager. If a driver is already present in the drivers directory, try 
+running the tool from the command prompt. If it runs, then the driver is fine. 
+The tool will not run if the driver version present does not match the driver 
+version expected.
+
+Note that for Windows 7 (and later), the user must have access to the 
+%systemroot%\system32\drivers directory. Only the administrator account has these
+privileges. The user must be logged in as administrator or the tools must be 
+"run as" administrator.
+
+Note that on Windows, any device that is disabled in device manager will not be
+accessible by tools due to no memory resources. You would get an error code 0xC86A800E.
+To solve this problem, you can do one of the following:
+1) Re-enable the device in device manager. Never disable this device when using tools.
+2) Install an NDIS device driver for the device and make sure that it does not have
+   a yellow or red bang by it in device manager.
+3) Delete the device from device manager and restart the system. The install new 
+   hardware wizard should appear on next reboot. Do not cancel this. Just move the
+   window aside and run the tool(s). Generally, you can click "cancel" on the wizard
+   but there are some cases where Windows will disable the memory resources causing
+   you to get back into the same state.
+
+
+INSTALLING THE TOOLS ON EFI
+==============================
+There is no installation required for EFI tools. The tools can simply be copied 
+from the appropriate directory to the drive that they will run from. The EFI2 
+binaries are for use with the UEFI Shell 2.X with the UEFI 2.3 HII protocol. 
+EFI2 tools will not run on the EFI Shell 1.X or if the UEFI 2.3 HII protocol is 
+not present.
+
+Note that while EFI supports USB drives, there may be issues running tools from the USB
+drive. Whether or not there are issues are BIOS specific. If issues are experienced,
+the tool should be run from hard disk instead.
+
+
+INSTALLING THE TOOLS ON DOS
+===========================
+The tools support various DOS versions.  There is no installation required for 
+DOS tools. The tools can simply be copied from the DOS directory on the CD to the drive
+that they will run from.  It is expected that the tools have a clean boot environment. 
+The tools will not run with memory managers and/or DOS networking drivers loaded. 
+The tools expect that they have full, unlimited control of the hardware. The tools 
+*WILL NOT* run properly if EMM386 is present.  The tools run in protected mode, 32-bit
+DOS. Therefore, they will not be compatible with any TSR programs.
+
+
+INSTALLING THE TOOLS ON LINUX*
+==============================
+In order to run tools on Linux*, a driver stub must be built and installed on 
+the system. This driver is not related to the network device driver that is 
+used to run the network during live traffic. It is a separate driver used 
+explicitly for tools. Due to the nature of Linux with the number of kernels 
+that can exist, we provide source for the driver module and an install script 
+to build/install it.
+
+The tools support Linux distributions based on kernels 2.6.x. Validation is done 
+randomly on popular distributions such as Red Hat* or Suse*. Configured 
+kernel source that matches the currently installed kernel is required. A working 
+GCC is also required. There are some versions of GCC that had a bug which did not 
+support unnamed structures. These versions of GCC are not supported. If you have 
+compilation errors, try updating your version of GCC.  If you have linker errors 
+when installing the driver, you should update your kernel - download the latest 
+stable off www.kernel.org and build/install it.
+
+Note that some distributions such as recent Fedora core versions do not ship with Kernel 
+source. You must download, install, and configure the source in order to get the tools' 
+driver built on this OS. Installing the kernel source RPM does not solve the problem.
+
+This is the installation procedure:
+
+    1. Log in as root and create a temporary directory to build the Intel(R)
+       Network Connection Tools driver.
+
+    2. Copy ‘install’ and ‘iqvlinux.tar.gz’ to the temporary directory.
+       There are 3 versions of Linux supported: Linux32 (x86), Linux64e (x64),
+       and Linux64 (Itanium). Copies of the above files exist in the appropriate
+       directory for your platform.
+
+    3. CD to the temporary directory and run ‘./install.’  The driver has been
+       installed now, so the files in the temporary directory can be removed. 
+
+    4. Copy the tools that you want to use from the appropriate directory of the CD.
+
+
+INSTALLING THE TOOLS ON ORACLE* SOLARIS*
+========================================
+Iqvsolaris is a separate driver used explicitly for tools and is provided only in 
+binary form. Iqvsolaris driver and tools are provided for 2 different architectures: 
+64s for sparc and 64e for x86_64. 
+
+In order to run tools on Solaris*, peform the following steps:
+
+  1. Log in as root.
+
+  2. Manually unload the network device driver.
+
+  3. Copy the binary iqv driver to the local machine driver directory by 
+     running the ‘./install’ script. 
+
+
+CUSTOMER SUPPORT
+================
+
+- Main Intel web support site: http://support.intel.com
+
+- Network products information: http://www.intel.com/network
+
+
+Legal / Disclaimers
+===================
+
+Copyright (C) 2002-2014, Intel Corporation.  All rights reserved.
+
+Intel Corporation assumes no responsibility for errors or omissions in this
+document.  Nor does Intel make any commitment to update the information
+contained herein.
+
+Intel is a trademark of Intel Corporation in the U.S. and/or other countries.
+
+*Other names and brands may be claimed as the property of others.
+
+This software is furnished under license and may only be used or copied 
+in accordance with the terms of the license.  The information in this 
+manual is furnished for informational use only, is subject to change 
+without notice, and should not be construed as a commitment by Intel 
+Corporation.  Intel Corporation assumes no responsibility or liability 
+for any errors or inaccuracies that may appear in this document or any 
+software that may be provided in association with this document.  Except 
+as permitted by such license, no part of this document may be reproduced, 
+stored in a retrieval system, or transmitted in any form or by any means 
+without the express written consent of Intel Corporation.
